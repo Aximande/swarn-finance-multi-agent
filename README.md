@@ -6,7 +6,7 @@ Ce projet utilise le système Swarm d'OpenAI pour créer un assistant financier 
 
 - Python 11
 - Git
-- - une clef API OpenAI pour utiliser GPT-4o ;) - : [tuto pour trouver sa clef](https://docs.google.com/document/d/1rXTdYsDDOY7ukc_95Ee69YKFVbzslrxYIF2Px0LqPLo/edit?usp=sharing) 
+- une clef API OpenAI pour utiliser GPT-4o ;) - : [tuto pour trouver sa clef](https://docs.google.com/document/d/1rXTdYsDDOY7ukc_95Ee69YKFVbzslrxYIF2Px0LqPLo/edit?usp=sharing) 
 
 ## Installation
 
