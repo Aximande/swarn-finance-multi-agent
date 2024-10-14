@@ -15,7 +15,10 @@ from agents import financial_planning_orchestrator_agent, document_analysis_agen
 from utils import pretty_print_messages
 
 st.sidebar.title("Configuration")
-api_key = "sk-xnOr1gxkIEFTq-vM7I0hWDuo7k8jpjJiZMiP0BPvOuT3BlbkFJ3d6-cQqF0hZssGi2P_Z35Yjvjv7Yo8zWMdKx5S66QA"
+api_key = st.sidebar.text_input("Entrez votre clé API OpenAI", type="password")
+if not api_key:
+    st.sidebar.warning("Veuillez entrer votre clé API OpenAI pour continuer.")
+    st.stop()
 
 st.title("Assistant Financier IA")
 
