@@ -1,6 +1,6 @@
 # Swarm Finance Multi-Agent
 
-Ce projet utilise le système Swarm d'OpenAI pour créer un assistant financier personnel multi-agent basé sur GPT-4.
+Ce projet utilise le système Swarm d'OpenAI pour créer un assistant financier personnel multi-agent basé sur GPT-4o.
 
 ## Prérequis
 
