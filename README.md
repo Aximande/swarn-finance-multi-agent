@@ -1,6 +1,10 @@
 # Swarm Finance Multi-Agent
 
-Ce projet utilise le système Swarm d'OpenAI pour créer un assistant financier personnel multi-agent basé sur GPT-4o.
+Ce projet utilise le système Swarm d'OpenAI pour créer un assistant financier personnel multi-agent basé sur GPT-4o, avec une interface utilisateur Streamlit.
+
+## Qu'est-ce que Streamlit ?
+
+Streamlit est un framework open-source qui permet de créer facilement des applications web interactives pour la data science et le machine learning. Il transforme vos scripts Python en applications web sans nécessiter de connaissances en développement web. C'est l'outil que nous utilisons pour rendre notre assistant financier accessible et facile à utiliser.
 
 ## Prérequis
 
@@ -75,3 +79,32 @@ Une fois que vous avez terminé toutes les étapes d'installation, suivez ces in
 Si vous rencontrez des problèmes ou si l'application ne se lance pas, assurez-vous que toutes les étapes d'installation ont été correctement suivies et que toutes les dépendances sont installées.
 
 Pour arrêter l'application, retournez dans le terminal et appuyez sur Ctrl+C.
+
+## Workflow d'utilisation
+
+Voici un exemple de workflow pour utiliser notre application avec vos données bancaires de Qonto :
+
+1. Exportez vos transactions depuis Qonto :
+   - Connectez-vous à votre compte Qonto.
+   - Allez dans la section "Transactions".
+   - Utilisez les filtres pour sélectionner les transactions de 2024 (ou la période souhaitée).
+   - Cliquez sur "Exporter" et choisissez le format CSV (données complètes ou simplifiées selon vos besoins).
+
+2. Préparez votre fichier CSV :
+   - Une fois le fichier téléchargé, ne le modifiez pas. L'application est conçue pour traiter le format standard de Qonto.
+
+3. Utilisez l'application Streamlit :
+   - Lancez l'application comme expliqué dans la section précédente.
+   - Dans l'interface de l'application, vous verrez une zone de "drag and drop" ou un bouton pour télécharger votre fichier.
+   - Faites glisser votre fichier CSV Qonto dans cette zone ou utilisez le bouton pour le sélectionner.
+
+4. Analyse des données :
+   - Une fois le fichier chargé, l'application traitera automatiquement vos transactions.
+   - Vous verrez apparaître des analyses, des graphiques et des recommandations basées sur vos données financières.
+
+5. Interaction avec l'assistant :
+   - Utilisez la zone de chat pour poser des questions spécifiques à l'assistant sur vos finances.
+   - L'assistant multi-agent utilisera les données de vos transactions pour fournir des réponses personnalisées et des conseils financiers.
+
+🚧 N'oubliez pas : vos données financières sont sensibles. Cette application les traite **localement** sur votre machine pour plus de sécurité, mais veillez à ne pas partager votre écran ou vos fichiers CSV avec des personnes non autorisées.
+
