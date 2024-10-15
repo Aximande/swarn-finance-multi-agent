@@ -31,8 +31,11 @@ st.sidebar.title("Configuration OpenAI")
 user_api_key = st.sidebar.text_input("Entrez votre clé API OpenAI", type="password")
 
 if user_api_key:
-    os.environ["OPENAI_API_KEY"] = user_api_key
-    st.sidebar.success("Clé API configurée avec succès!")
+    if verify_api_key(user_api_key):
+        initialize_clients(user_api_key)
+        st.sidebar.success("Clé API configurée avec succès!")
+    else:
+        st.sidebar.error("Clé API invalide. Veuillez vérifier votre clé.")
 else:
     st.sidebar.warning("Veuillez entrer une clé API OpenAI valide.")
 
@@ -42,6 +45,7 @@ if not os.getenv("OPENAI_API_KEY"):
     st.stop()
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 # Appliquer un style personnalisé
 st.markdown("""
@@ -53,7 +57,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-from agents import financial_planning_orchestrator_agent, document_analysis_agent, swarm_client, analyze_financial_image, analyze_spreadsheet, visualize_and_optimize_data
+from agents import financial_planning_orchestrator_agent, document_analysis_agent, swarm_client, analyze_financial_image, analyze_spreadsheet, visualize_and_optimize_data, initialize_clients, verify_api_key
 from utils import pretty_print_messages
 
 # En-tête avec logos
@@ -481,3 +485,14 @@ if 'analysis_result' in st.session_state and st.session_state['analysis_result']
 # Pied de page
 st.markdown("---")
 st.caption("Assistant Financier IA spécialisé Qonto by Alexandre Lavallée")
+
+def verify_api_key(api_key):
+    try:
+        client = openai.Client(api_key=api_key)
+        client.models.list()
+        return True
+    except openai.AuthenticationError:
+        return False
+    except Exception as e:
+        print(f"Erreur lors de la vérification de la clé API : {str(e)}")
+        return False

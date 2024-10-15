@@ -13,11 +13,17 @@ import streamlit as st
 from PIL import Image
 
 # Load environment variables
-load_dotenv()
+#load_dotenv()
 
 # Initialize Swarm client
-swarm_client = Swarm()
-openai_client = openai.Client()
+swarm_client = None
+openai_client = None
+
+def initialize_clients(api_key):
+    global swarm_client, openai_client
+    os.environ["OPENAI_API_KEY"] = api_key
+    swarm_client = Swarm()
+    openai_client = openai.Client(api_key=api_key)
 
 # Define specialized financial agents
 
@@ -121,6 +127,8 @@ def encode_image(image):
         raise ValueError("Format d'image non pris en charge")
 
 def analyze_financial_image(image):
+    if not openai_client:
+        return "Erreur : Le client OpenAI n'est pas initialisé. Veuillez vérifier votre clé API."
     base64_image = encode_image(image)
     max_retries = 3
     retry_delay = 1
@@ -302,6 +310,8 @@ def get_financial_advice(analysis, data_json):
         return f"Erreur lors de la génération des conseils : {str(e)}"
 
 def process_financial_data(file):
+    if not swarm_client:
+        return None, "Erreur : Le client Swarm n'est pas initialisé. Veuillez vérifier votre clé API.", None, None
     df = pd.read_csv(file) if file.name.endswith('.csv') else pd.read_excel(file)
     analysis = analyze_spreadsheet(file)
     data_json = df.to_json(orient='records')
