@@ -10,7 +10,7 @@ from collections import defaultdict
 import pickle
 from PIL import Image
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # Cette ligne doit être la première commande Streamlit
 st.set_page_config(page_title="Assistant Financier IA Qonto", layout="wide", initial_sidebar_state="collapsed")
@@ -28,7 +28,7 @@ def mask_api_key(api_key):
 
 # Interface utilisateur pour la clé API
 st.sidebar.title("Configuration OpenAI")
-user_api_key = st.sidebar.text_input("Entrez votre clé API OpenAI", value=mask_api_key(api_key), type="password")
+user_api_key = st.sidebar.text_input("Entrez votre clé API OpenAI", type="password")
 
 if user_api_key:
     os.environ["OPENAI_API_KEY"] = user_api_key
