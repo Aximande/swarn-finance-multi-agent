@@ -25,6 +25,20 @@ def initialize_clients(api_key):
     swarm_client = Swarm()
     openai_client = openai.Client(api_key=api_key)
 
+
+
+def verify_api_key(api_key):
+    try:
+        client = openai.Client(api_key=api_key)
+        client.models.list()
+        return True
+    except openai.AuthenticationError:
+        return False
+    except Exception as e:
+        print(f"Erreur lors de la vérification de la clé API : {str(e)}")
+        return False
+
+
 # Define specialized financial agents
 
 # 1. Risk Management Agent
