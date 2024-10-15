@@ -77,10 +77,6 @@ urllib3==2.2.3 ; python_version >= "3.11" and python_version < "4.0"
 virtualenv==20.26.6 ; python_version >= "3.11" and python_version < "4.0"
 watchdog==5.0.3 ; python_version >= "3.11" and python_version < "4.0" and platform_system != "Darwin"
 yarl==1.15.0 ; python_version >= "3.11" and python_version < "4.0"
-##
 plotly==5.18.0
 matplotlib==3.8.2
 openpyxl==3.1.2
-streamlit==1.31.0
-Pillow==10.2.0
-pandas==2.2.0
