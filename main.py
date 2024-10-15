@@ -22,6 +22,10 @@ st.set_page_config(page_title="Assistant Financier IA Qonto", layout="wide", ini
 
 #load_dotenv()  # Charge les variables d'environnement depuis .env si présent
 
+# Nettoyage de la session au démarrage
+if 'openai_api_key' in st.session_state:
+    del st.session_state['openai_api_key']
+
 # Fonction pour masquer la clé API
 def mask_api_key(api_key):
     if api_key:
@@ -34,6 +38,10 @@ def mask_api_key(api_key):
 # Interface utilisateur pour la clé API
 st.sidebar.title("Configuration OpenAI")
 user_api_key = st.sidebar.text_input("Entrez votre clé API OpenAI", type="password")
+
+if not user_api_key:
+    st.warning("Veuillez entrer une clé API OpenAI valide.")
+    st.stop()
 
 if user_api_key:
     if verify_api_key(user_api_key):
@@ -455,37 +463,45 @@ def visualize_recurring_expenses(df, key):
                  hover_data=['Fréquence', 'Première occurrence', 'Dernière occurrence'])
     return fig
 
-# Section des résultats
-st.header("Résultats de l'analyse")
+# Créer un onglet pour les résultats d'analyse
+st.sidebar.markdown("---")
+show_analysis = st.sidebar.checkbox("Afficher les résultats d'analyse détaillés")
 
-if "file_analysis" in st.session_state and st.session_state["file_analysis"]:
-    st.write(st.session_state["file_analysis"])
-else:
-    st.info("Veuillez télécharger un fichier pour voir l'analyse et les visualisations.")
-
-# Dans votre code principal
-if 'analysis_result' in st.session_state and st.session_state['analysis_result']:
-    if 'recurring_expenses' in st.session_state['analysis_result']:
-        recurring_df = pd.DataFrame(st.session_state['analysis_result']['recurring_expenses'])
-        st.plotly_chart(visualize_recurring_expenses(recurring_df, key='recurring_expenses'), key='recurring_expenses_chart')
-
-    # Ajoutez ici d'autres visualisations basées sur analysis_result
-
-    # Par exemple, pour le graphique de tendance des dépenses
-    if 'df' in st.session_state and st.session_state['df'] is not None and not st.session_state['df'].empty:
-        aggregation = st.selectbox(
-            "Agrégation des données",
-            ['D', 'W', 'M'],
-            format_func=lambda x: {'D': 'Jour', 'W': 'Semaine', 'M': 'Mois'}[x],
-            key='expense_trend_aggregation_results'
-        )
-        chart = create_expense_trend_chart(st.session_state['df'], key='expense_trend_results', aggregation=aggregation)
-        if chart is not None:
-            st.plotly_chart(chart, key='expense_trend_chart_results')
+if show_analysis:
+    with st.expander("Résultats de l'analyse", expanded=True):
+        if "file_analysis" in st.session_state and st.session_state["file_analysis"]:
+            st.write(st.session_state["file_analysis"])
         else:
-            st.warning("Impossible de créer le graphique de tendance des dépenses.")
-    else:
-        st.info("Aucune donnée disponible pour créer le graphique de tendance des dépenses.")
+            st.info("Veuillez télécharger un fichier pour voir l'analyse et les visualisations.")
+
+        if 'analysis_result' in st.session_state and st.session_state['analysis_result']:
+            # Dépenses récurrentes
+            if 'recurring_expenses' in st.session_state['analysis_result']:
+                recurring_df = pd.DataFrame(st.session_state['analysis_result']['recurring_expenses'])
+                st.subheader("Dépenses récurrentes")
+                st.plotly_chart(visualize_recurring_expenses(recurring_df, key='recurring_expenses'), key='recurring_expenses_chart', use_container_width=True)
+
+            # Tendance des dépenses
+            if 'df' in st.session_state and st.session_state['df'] is not None and not st.session_state['df'].empty:
+                st.subheader("Tendance des dépenses")
+                aggregation = st.selectbox(
+                    "Agrégation des données",
+                    ['D', 'W', 'M'],
+                    format_func=lambda x: {'D': 'Jour', 'W': 'Semaine', 'M': 'Mois'}[x],
+                    key='expense_trend_aggregation_results'
+                )
+                chart = create_expense_trend_chart(st.session_state['df'], key='expense_trend_results', aggregation=aggregation)
+                if chart is not None:
+                    st.plotly_chart(chart, key='expense_trend_chart_results', use_container_width=True)
+                else:
+                    st.warning("Impossible de créer le graphique de tendance des dépenses.")
+            else:
+                st.info("Aucune donnée disponible pour créer le graphique de tendance des dépenses.")
+
+            # Ajoutez ici d'autres visualisations basées sur analysis_result
+            # Par exemple :
+            # st.subheader("Autre visualisation")
+            # ... code pour la visualisation ...
 
 # Pied de page
 st.markdown("---")
