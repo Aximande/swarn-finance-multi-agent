@@ -81,3 +81,4 @@ plotly==5.18.0
 matplotlib==3.8.2
 openpyxl==3.1.2
 seaborn==0.12.2
+xlrd>=2.0.1
