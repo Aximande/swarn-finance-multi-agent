@@ -10,6 +10,11 @@ from collections import defaultdict
 import pickle
 from PIL import Image
 import os
+from agents import (
+    initialize_clients, verify_api_key, financial_planning_orchestrator_agent,
+    analyze_financial_image, process_financial_data, process_qonto_data,
+    swarm_client
+)
 #from dotenv import load_dotenv
 
 # Cette ligne doit être la première commande Streamlit
@@ -485,14 +490,3 @@ if 'analysis_result' in st.session_state and st.session_state['analysis_result']
 # Pied de page
 st.markdown("---")
 st.caption("Assistant Financier IA spécialisé Qonto by Alexandre Lavallée")
-
-def verify_api_key(api_key):
-    try:
-        client = openai.Client(api_key=api_key)
-        client.models.list()
-        return True
-    except openai.AuthenticationError:
-        return False
-    except Exception as e:
-        print(f"Erreur lors de la vérification de la clé API : {str(e)}")
-        return False
