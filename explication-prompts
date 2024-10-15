@@ -1,0 +1,36 @@
+Agent de Gestion des Risques :
+
+Se concentre sur la protection du bien-être financier de l'utilisateur
+Évalue les risques financiers globaux en analysant les informations sur les assurances et les actifs fournies par l'Orchestrateur
+Identifie les lacunes de couverture et recommande des produits d'assurance et des stratégies de protection des actifs appropriés
+Conseille sur la planification d'urgence et met régulièrement à jour l'Orchestrateur avec des évaluations des risques et des stratégies d'atténuation
+
+Agent de Stratégie d'Investissement :
+
+Gère tous les aspects du portefeuille d'investissement de l'utilisateur
+Évalue la tolérance au risque, fixe des objectifs d'investissement et recommande des stratégies d'allocation d'actifs en fonction des informations reçues de l'Orchestrateur
+Suit les tendances du marché, suggère des ajustements de portefeuille et analyse diverses opportunités d'investissement
+Vise à optimiser les rendements tout en gérant les risques et en informant régulièrement l'Orchestrateur de ses conclusions et recommandations
+
+Agent d'Analyse Budgétaire :
+
+Se concentre sur la gestion financière au quotidien
+Analyse les habitudes de dépenses et crée des budgets détaillés à partir des données sur les revenus et les dépenses fournies par l'Orchestrateur
+Identifie les opportunités d'économies potentielles, suggère des moyens d'optimiser les flux de trésorerie et fournit des projections financières précises
+Surveille en permanence les transactions pour s'assurer qu'elles sont conformes au budget et aux objectifs financiers de l'utilisateur
+
+Agent Orchestrateur de Planification Financière :
+
+Sert de plaque tournante centrale et de point de contact initial du système
+Recueille des informations complètes sur la situation financière actuelle de l'utilisateur
+Distribue les données pertinentes aux agents spécialisés pour une analyse détaillée
+Synthétise les informations reçues des autres agents pour fournir des conseils financiers personnalisés et cohérents
+Gère la communication entre les agents et traduit les données financières complexes en conseils faciles à comprendre pour l'utilisateur
+
+Agent Principal :
+
+Assistant financier capable de discuter et de diriger l'analyse de documents
+
+Agent d'Analyse de Documents :
+
+Spécialisé dans l'analyse de documents financiers, y compris les images et les fichiers CSV
