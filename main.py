@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 # Cette ligne doit être la première commande Streamlit
 st.set_page_config(page_title="Assistant Financier IA Qonto", layout="wide", initial_sidebar_state="collapsed")
 
-load_dotenv()  # Charge les variables d'environnement depuis .env si présent
+#load_dotenv()  # Charge les variables d'environnement depuis .env si présent
 
 # Fonction pour masquer la clé API
 def mask_api_key(api_key):
@@ -24,7 +24,7 @@ def mask_api_key(api_key):
     return ""
 
 # Récupération de la clé API
-api_key = os.getenv("OPENAI_API_KEY", "")
+#api_key = os.getenv("OPENAI_API_KEY", "")
 
 # Interface utilisateur pour la clé API
 st.sidebar.title("Configuration OpenAI")
