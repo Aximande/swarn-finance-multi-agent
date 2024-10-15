@@ -2,22 +2,22 @@
 from swarm import Swarm, Agent
 import os
 from dotenv import load_dotenv
-import streamlit as st
-from openai import OpenAI
-import pandas as pd
+import openai
 import base64
-import io
-import time
-import json
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
+import io
+import streamlit as st
+from PIL import Image
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Swarm client
-client = OpenAI()
 swarm_client = Swarm()
+openai_client = openai.Client()
 
 # Define specialized financial agents
 
@@ -105,8 +105,20 @@ financial_planning_orchestrator_agent = Agent(
     functions=[transfer_to_budget_agent, transfer_to_investment_agent, transfer_to_risk_agent]
 )
 
-def encode_image(image_file):
-    return base64.b64encode(image_file.getvalue()).decode('utf-8')
+def encode_image(image):
+    if isinstance(image, Image.Image):
+        # Si c'est déjà un objet Image, on le convertit en bytes
+        buffered = io.BytesIO()
+        image.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
+    elif hasattr(image, 'read'):
+        # Si c'est un objet file-like (comme un BytesIO ou un fichier ouvert)
+        return base64.b64encode(image.read()).decode('utf-8')
+    elif isinstance(image, bytes):
+        # Si c'est déjà un objet bytes
+        return base64.b64encode(image).decode('utf-8')
+    else:
+        raise ValueError("Format d'image non pris en charge")
 
 def analyze_financial_image(image):
     base64_image = encode_image(image)
@@ -115,30 +127,32 @@ def analyze_financial_image(image):
 
     for attempt in range(max_retries):
         try:
-            with OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=60.0) as client:
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "Vous êtes un expert en analyse financière. Analysez l'image fournie et fournissez un résumé des informations financières pertinentes."
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": "Analysez cette image financière et résumez les informations clés."},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,{base64_image}",
-                                        "detail": "high"
-                                    }
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Vous êtes un expert en analyse financière. Analysez l'image fournie et fournissez un résumé des informations financières pertinentes."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Analysez cette image financière et résumez les informations clés."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}",
+                                    "detail": "high"
                                 }
-                            ]
-                        }
-                    ],
-                    max_tokens=300
-                )
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=300
+            )
             return response.choices[0].message.content
         except Exception as e:
             if attempt < max_retries - 1:
@@ -153,32 +167,48 @@ def analyze_spreadsheet(file):
         # Lire le fichier
         if file.name.endswith('.csv'):
             df = pd.read_csv(file)
-        elif file.name.endswith('.xls'):
-            df = pd.read_excel(file, engine='xlrd')
-        elif file.name.endswith('.xlsx'):
-            df = pd.read_excel(file, engine='openpyxl')
+        elif file.name.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(file)
         else:
             return "Format de fichier non pris en charge. Veuillez utiliser .csv, .xls ou .xlsx."
 
-        # Analyse simplifiée
+        # Analyse plus détaillée
+        total_transactions = len(df)
+        total_income = df['Credit'].sum()
         total_expenses = df['Debit'].sum()
-        top_expenses = df.groupby('Counterparty name')['Debit'].sum().nlargest(5)
+        net_cash_flow = total_income - total_expenses
+        top_expenses = df.groupby('Counterparty name')['Debit'].sum().nlargest(10)
+        top_income_sources = df.groupby('Counterparty name')['Credit'].sum().nlargest(5)
+        monthly_expenses = df.groupby(pd.to_datetime(df['Date']).dt.to_period('M'))['Debit'].sum()
+        monthly_income = df.groupby(pd.to_datetime(df['Date']).dt.to_period('M'))['Credit'].sum()
 
         analysis = f"""
-        Analyse simplifiée des dépenses :
+        Analyse détaillée des transactions :
 
-        1. Dépenses totales : {total_expenses:.2f}
-        2. Top 5 des catégories de dépenses :
+        1. Nombre total de transactions : {total_transactions}
+        2. Total des revenus : {total_income:.2f}
+        3. Total des dépenses : {total_expenses:.2f}
+        4. Flux de trésorerie net : {net_cash_flow:.2f}
+        5. Top 10 des catégories de dépenses :
         {top_expenses.to_string()}
+        6. Top 5 des sources de revenus :
+        {top_income_sources.to_string()}
+        7. Évolution mensuelle des dépenses :
+        {monthly_expenses.to_string()}
+        8. Évolution mensuelle des revenus :
+        {monthly_income.to_string()}
 
         Recommandations :
-        1. Concentrez-vous sur la réduction des dépenses dans la catégorie principale.
-        2. Examinez les opportunités d'économies dans les 5 principales catégories de dépenses.
+        1. Concentrez-vous sur la réduction des dépenses dans les principales catégories.
+        2. Analysez les tendances mensuelles pour identifier les opportunités d'optimisation.
+        3. Évaluez la stabilité des sources de revenus.
         """
 
         return analysis
     except Exception as e:
-        return f"Une erreur s'est produite lors de l'analyse du fichier : {str(e)}"
+        return f"Une erreur s'est produite lors de l'analyse du fichier : {str(e)}\n" \
+               f"Détails de l'erreur : {e.__class__.__name__}\n" \
+               f"Ligne : {e.__traceback__.tb_lineno}"
 
 # Modifier la fonction existante analyze_csv pour utiliser analyze_spreadsheet
 def analyze_csv(csv_file):
@@ -238,4 +268,143 @@ def visualize_and_optimize_data(file):
     st.write("Statistiques de base du DataFrame optimisé :")
     st.write(optimized_df.describe())
 
-    return optimized_df
+    # Générer une analyse textuelle
+    analysis = f"""
+    Analyse des données financières :
+
+    1. Le fichier contient {len(df)} entrées et {len(df.columns)} colonnes.
+    2. Les colonnes principales sont : {', '.join(selected_columns)}.
+    3. La moyenne des dépenses est de {optimized_df['Debit'].mean():.2f}.
+    4. La transaction la plus élevée est de {optimized_df['Debit'].max():.2f}.
+    5. Il y a {optimized_df['Counterparty name'].nunique()} contreparties uniques.
+    """
+
+    return optimized_df, analysis
+
+def get_financial_advice(analysis, data_json):
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Vous êtes un conseiller financier expert. Analysez les données fournies et donnez des conseils financiers détaillés et personnalisés."
+                },
+                {
+                    "role": "user",
+                    "content": f"Voici l'analyse d'une situation financière : {analysis}\n\nEt voici les données brutes : {data_json}\n\nPouvez-vous fournir une analyse approfondie et des conseils financiers personnalisés basés sur ces informations ?"
+                }
+            ],
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Erreur lors de la génération des conseils : {str(e)}"
+
+def process_financial_data(file):
+    df = pd.read_csv(file) if file.name.endswith('.csv') else pd.read_excel(file)
+    analysis = analyze_spreadsheet(file)
+    data_json = df.to_json(orient='records')
+    advice = get_financial_advice(analysis, data_json)
+
+    response = swarm_client.run(
+        agent=financial_planning_orchestrator_agent,
+        messages=[
+            {"role": "user", "content": f"Voici l'analyse des données financières : {analysis}\n\nEt voici les conseils générés : {advice}\n\nPouvez-vous synthétiser ces informations et fournir un plan d'action global détaillé ?"}
+        ]
+    )
+
+    orchestrator_response = response.messages[-1]["content"]
+
+    return df, analysis, advice, orchestrator_response
+
+def preprocess_date(df):
+    df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+    return df.dropna(subset=['Date'])
+
+def preprocess_qonto_data(df):
+    # Renommez les colonnes si nécessaire
+    column_mapping = {
+        'Operation date (UTC)': 'Date',
+        'Total amount (incl. VAT)': 'Montant',
+        'Currency': 'Devise',
+        'Counterparty name': 'Bénéficiaire',
+        'Payment method': 'Méthode_Paiement',
+        'Initiator': 'Initiateur',
+        'Team': 'Équipe',
+        'Category': 'Catégorie'
+    }
+    df = df.rename(columns=column_mapping)
+
+    # Convertissez la colonne de date
+    df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y %H:%M:%S')
+
+    # Assurez-vous que le montant est numérique
+    df['Montant'] = pd.to_numeric(df['Montant'], errors='coerce')
+
+    return df
+
+def generate_insights(analysis):
+    insights = [
+        f"Total des transactions : {analysis['total_transactions']}",
+        f"Total des dépenses : {analysis['total_debit']:.2f} {analysis['currency']}",
+        f"Total des revenus : {analysis['total_credit']:.2f} {analysis['currency']}",
+        f"Solde actuel : {analysis['balance']:.2f} {analysis['currency']}",
+        f"Période analysée : {analysis['date_range']}",
+        "\nTop 5 des dépenses par bénéficiaire :",
+        *[f"- {k}: {v:.2f} {analysis['currency']}" for k, v in analysis['top_expenses'].items()],
+        "\nTop 5 des revenus par source :",
+        *[f"- {k}: {v:.2f} {analysis['currency']}" for k, v in analysis['top_income'].items()],
+        "\nDépenses par catégorie :",
+        *[f"- {k}: {v:.2f} {analysis['currency']}" for k, v in analysis['expenses_by_category'].items()],
+        "\nDépenses par méthode de paiement :",
+        *[f"- {k}: {v:.2f} {analysis['currency']}" for k, v in analysis['expenses_by_payment_method'].items()],
+        "\nDépenses par équipe :",
+        *[f"- {k}: {v:.2f} {analysis['currency']}" for k, v in analysis['expenses_by_team'].items()],
+        "\nTop 5 des initiateurs de dépenses :",
+        *[f"- {k}: {v:.2f} {analysis['currency']}" for k, v in analysis['top_initiators'].items()]
+    ]
+    return "\n".join(insights)
+
+def analyze_qonto_data(df, business_type):
+    analysis = {
+        "total_transactions": len(df),
+        "total_debit": df['Montant'][df['Montant'] < 0].sum() if 'Montant' in df.columns else 0,
+        "total_credit": df['Montant'][df['Montant'] > 0].sum() if 'Montant' in df.columns else 0,
+        "balance": df['Balance'].iloc[-1] if 'Balance' in df.columns else None,
+        "currency": df['Devise'].iloc[0] if 'Devise' in df.columns else "EUR",
+        "date_range": f"Du {df['Date'].min()} au {df['Date'].max()}" if 'Date' in df.columns else "Non spécifié",
+    }
+
+    if 'Bénéficiaire' in df.columns and 'Montant' in df.columns:
+        analysis["top_expenses"] = df[df['Montant'] < 0].groupby('Bénéficiaire')['Montant'].sum().nlargest(5).to_dict()
+        analysis["top_income"] = df[df['Montant'] > 0].groupby('Bénéficiaire')['Montant'].sum().nlargest(5).to_dict()
+
+    if business_type == "Auto-entrepreneur":
+        if 'Catégorie' in df.columns and 'Montant' in df.columns:
+            analysis["expenses_by_category"] = df[df['Montant'] < 0].groupby('Catégorie')['Montant'].sum().to_dict()
+    else:
+        if 'Équipe' in df.columns and 'Montant' in df.columns:
+            analysis["expenses_by_team"] = df[df['Montant'] < 0].groupby('Équipe')['Montant'].sum().to_dict()
+
+    if 'Méthode_Paiement' in df.columns and 'Montant' in df.columns:
+        analysis["expenses_by_payment_method"] = df[df['Montant'] < 0].groupby('Méthode_Paiement')['Montant'].sum().to_dict()
+
+    if 'Initiateur' in df.columns and 'Montant' in df.columns:
+        analysis["top_initiators"] = df[df['Montant'] < 0].groupby('Initiateur')['Montant'].sum().nlargest(5).to_dict()
+
+    return analysis
+
+def process_qonto_data(file):
+    if file.name.endswith('.csv'):
+        df = pd.read_csv(file)
+    elif file.name.endswith(('.xls', '.xlsx')):
+        df = pd.read_excel(file)
+    else:
+        raise ValueError("Format de fichier non supporté")
+
+    df = preprocess_qonto_data(df)
+    analysis_result = analyze_qonto_data(df)
+    insights = generate_insights(analysis_result)
+
+    return df, analysis_result, insights
