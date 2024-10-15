@@ -9,6 +9,35 @@ import plotly.express as px
 from collections import defaultdict
 import pickle
 from PIL import Image
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Charge les variables d'environnement depuis .env si présent
+
+# Fonction pour masquer la clé API
+def mask_api_key(api_key):
+    if api_key:
+        return api_key[:6] + "*" * (len(api_key) - 6)
+    return ""
+
+# Récupération de la clé API
+api_key = os.getenv("OPENAI_API_KEY", "")
+
+# Interface utilisateur pour la clé API
+st.sidebar.title("Configuration OpenAI")
+user_api_key = st.sidebar.text_input("Entrez votre clé API OpenAI", value=mask_api_key(api_key), type="password")
+
+if user_api_key:
+    os.environ["OPENAI_API_KEY"] = user_api_key
+    st.sidebar.success("Clé API configurée avec succès!")
+else:
+    st.sidebar.warning("Veuillez entrer une clé API OpenAI valide.")
+
+# Vérifiez si la clé API est définie avant de continuer
+if not os.getenv("OPENAI_API_KEY"):
+    st.error("La clé API OpenAI n'est pas définie. Veuillez la configurer dans la barre latérale.")
+    st.stop()
+
 logging.basicConfig(level=logging.DEBUG)
 
 # Cette ligne doit être la première commande Streamlit
@@ -24,7 +53,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-import os
 from agents import financial_planning_orchestrator_agent, document_analysis_agent, swarm_client, analyze_financial_image, analyze_spreadsheet, visualize_and_optimize_data
 from utils import pretty_print_messages
 
@@ -45,11 +73,6 @@ with st.sidebar:
         "Type d'entreprise",
         ["Auto-entrepreneur", "Entreprise avec équipes"]
     )
-    api_key = st.text_input("Entrez votre clé API OpenAI", type="password")
-    if not api_key:
-        st.warning("Veuillez entrer votre clé API OpenAI pour continuer.")
-        st.stop()
-
 
 # Initialize chat history
 if "messages" not in st.session_state:
