@@ -12,6 +12,9 @@ from PIL import Image
 import os
 from dotenv import load_dotenv
 
+# Cette ligne doit être la première commande Streamlit
+st.set_page_config(page_title="Assistant Financier IA Qonto", layout="wide", initial_sidebar_state="collapsed")
+
 load_dotenv()  # Charge les variables d'environnement depuis .env si présent
 
 # Fonction pour masquer la clé API
@@ -39,9 +42,6 @@ if not os.getenv("OPENAI_API_KEY"):
     st.stop()
 
 logging.basicConfig(level=logging.DEBUG)
-
-# Cette ligne doit être la première commande Streamlit
-st.set_page_config(page_title="Assistant Financier IA Qonto", layout="wide", initial_sidebar_state="collapsed")
 
 # Appliquer un style personnalisé
 st.markdown("""
